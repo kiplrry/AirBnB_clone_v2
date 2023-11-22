@@ -74,7 +74,7 @@ class HBNBCommand(cmd.Cmd):
                 if pline:
                     # check for *args or **kwargs
                     if pline[0] == '{' and pline[-1] == '}'\
-                            and type(eval(pline)) is dict:
+                            and isinstance(eval(pline), dict):
                         _args = pline
                     else:
                         _args = pline.replace(',', '')
@@ -113,18 +113,74 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
+    # def do_create(self, args):
+    #     """ Create an object of any class"""
+    #     if not args:
+    #         print("** class name missing **")
+    #         return
+    #     elif args not in HBNBCommand.classes:
+    #         print("** class doesn't exist **")
+    #         return
+    #     new_instance = HBNBCommand.classes[args]()
+    #     storage.save()
+    #     print(new_instance.id)
+    #     storage.save()
     def do_create(self, args):
         """ Create an object of any class"""
-        if not args:
+        clsname, kwargs = self.args_parser(args)
+        if not clsname:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
+        print(f'clsname = {clsname}')
+        if clsname not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
+        new_instance = HBNBCommand.classes[clsname]()
+        if kwargs:
+            print(f'kwargs: {kwargs}')
+            instance_dict = new_instance.to_dict()
+            print(f'instance dict {instance_dict}')
+            instance_dict.update(kwargs)
+            print(f'newdict {instance_dict}')
+            new_instance = HBNBCommand.classes[clsname](instance_dict)
+        print(new_instance.id)
+
+        storage.save()
+    
+    def args_parser(self, args):
+        '''parses args for the create method'''
+        args = args.split(' ')
+        clsname = args[0]
+        params = args[1:]
+        
+        argsdict = {}
+        for item in params:
+            if len(item.split('=')) != 2:
+                continue
+            key = item.split('=')[0]
+            val = item.split('=')[1]
+            try:
+                val = int(val)
+            except ValueError:
+                try:
+                    val = float(val)
+                except ValueError:
+                    if val.startswith('"') and val.endswith('"'):
+                        val = val.strip('"').replace('_', ' ')
+                    else:
+                        continue
+            argsdict[key] = val
+        return (clsname, argsdict)
+        
+
+
+
+
+    def do_test(self, line):
+        new_instance = State()
         storage.save()
         print(new_instance.id)
-        storage.save()
+
 
     def help_create(self):
         """ Help information for the create method """
