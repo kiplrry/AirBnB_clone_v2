@@ -2,6 +2,7 @@
 """ Console Module """
 import cmd
 import sys
+import re
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -113,46 +114,34 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    # def do_create(self, args):
-    #     """ Create an object of any class"""
-    #     if not args:
-    #         print("** class name missing **")
-    #         return
-    #     elif args not in HBNBCommand.classes:
-    #         print("** class doesn't exist **")
-    #         return
-    #     new_instance = HBNBCommand.classes[args]()
-    #     storage.save()
-    #     print(new_instance.id)
-    #     storage.save()
     def do_create(self, args):
         """ Create an object of any class"""
         clsname, kwargs = self.args_parser(args)
         if not clsname:
             print("** class name missing **")
             return
-        print(f'clsname = {clsname}')
         if clsname not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
         new_instance = HBNBCommand.classes[clsname]()
         if kwargs:
-            print(f'kwargs: {kwargs}')
             instance_dict = new_instance.to_dict()
-            print(f'instance dict {instance_dict}')
             instance_dict.update(kwargs)
-            print(f'newdict {instance_dict}')
-            new_instance = HBNBCommand.classes[clsname](instance_dict)
+            new_instance = HBNBCommand.classes[clsname](**instance_dict)
+            objkey = f'{clsname}.{new_instance.id}'
+            storage.all()[objkey] =  new_instance
+            print(f'in store: {storage.all()}')
+        storage.save()
+        print(new_instance.to_dict())
         print(new_instance.id)
 
-        storage.save()
-    
+
     def args_parser(self, args):
         '''parses args for the create method'''
         args = args.split(' ')
         clsname = args[0]
         params = args[1:]
-        
+       
         argsdict = {}
         for item in params:
             if len(item.split('=')) != 2:
@@ -171,9 +160,6 @@ class HBNBCommand(cmd.Cmd):
                         continue
             argsdict[key] = val
         return (clsname, argsdict)
-        
-
-
 
 
     def do_test(self, line):
@@ -288,88 +274,75 @@ class HBNBCommand(cmd.Cmd):
         """ """
         print("Usage: count <class_name>")
 
-    def do_update(self, args):
-        """ Updates a certain object with new info """
-        c_name = c_id = att_name = att_val = kwargs = ''
-
-        # isolate cls from id/args, ex: (<cls>, delim, <id/args>)
-        args = args.partition(" ")
-        if args[0]:
-            c_name = args[0]
-        else:  # class name not present
+    def do_update(self, line):
+        """
+        Updates an instance based on the class name and id by adding\
+        or updating attribute (save the change into the JSON file).\
+        Ex: $ update BaseModel 1234-1234-1234 email "aibnb@mail.com"
+        """
+        args = self.lineparser(line)
+        key = self.validate(args)
+        if not key:
+            return
+        if len(args) < 3:
+            print("** attribute name missing **")
+            return
+        if args[2] in ["id", "create_at", "updated_at"]:
+            return
+        if len(args) < 4:
+            print("** value missing **")
+            return
+        if args[3] is None:
+            print("** invalid value **")
+            return
+        attr = args[2]
+        val = args[3]
+        objdict = storage.all()[key].to_dict()
+        objdict[attr] = val
+        inst = HBNBCommand.classes[args[0]](**objdict)
+        storage.new(inst)
+        storage.save()
+    
+    @staticmethod
+    def validate(args):
+        """validates args and returns the key"""
+        if not args:
             print("** class name missing **")
-            return
-        if c_name not in HBNBCommand.classes:  # class name invalid
+            return None
+        if args[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
-            return
-
-        # isolate id from args
-        args = args[2].partition(" ")
-        if args[0]:
-            c_id = args[0]
-        else:  # id not present
+            return None
+        if len(args) < 2:
             print("** instance id missing **")
-            return
+            return None
+        key = f"{args[0]}.{args[1]}"
 
-        # generate key from class and id
-        key = c_name + "." + c_id
-
-        # determine if key is present
         if key not in storage.all():
             print("** no instance found **")
-            return
+            return None
 
-        # first determine if kwargs or args
-        if '{' in args[2] and '}' in args[2] and type(eval(args[2])) is dict:
-            kwargs = eval(args[2])
-            args = []  # reformat kwargs into list, ex: [<name>, <value>, ...]
-            for k, v in kwargs.items():
-                args.append(k)
-                args.append(v)
-        else:  # isolate args
-            args = args[2]
-            if args and args[0] == '\"':  # check for quoted arg
-                second_quote = args.find('\"', 1)
-                att_name = args[1:second_quote]
-                args = args[second_quote + 1:]
-
-            args = args.partition(' ')
-
-            # if att_name was not quoted arg
-            if not att_name and args[0] != ' ':
-                att_name = args[0]
-            # check for quoted val arg
-            if args[2] and args[2][0] == '\"':
-                att_val = args[2][1:args[2].find('\"', 1)]
-
-            # if att_val was not quoted arg
-            if not att_val and args[2]:
-                att_val = args[2].partition(' ')[0]
-
-            args = [att_name, att_val]
-
-        # retrieve dictionary of current objects
-        new_dict = storage.all()[key]
-
-        # iterate through attr names and values
-        for i, att_name in enumerate(args):
-            # block only runs on even iterations
-            if (i % 2 == 0):
-                att_val = args[i + 1]  # following item is value
-                if not att_name:  # check for att_name
-                    print("** attribute name missing **")
-                    return
-                if not att_val:  # check for att_value
-                    print("** value missing **")
-                    return
-                # type cast as necessary
-                if att_name in HBNBCommand.types:
-                    att_val = HBNBCommand.types[att_name](att_val)
-
-                # update dictionary with name, value pair
-                new_dict.__dict__.update({att_name: att_val})
-
-        new_dict.save()  # save updates to file
+        return key
+    
+    @staticmethod
+    def lineparser(line, num=-1):
+        """Splits the line args and returns a list of them"""
+        pattern = re.compile(r"(\d+\.\d+|\d+|\"[^'\"]+?\"|'[^'\"]+?')$")
+        if line:
+            args = line.split(" ", num)
+            if len(args) > 3:
+                if re.match(pattern, args[3]):
+                    val = args[3].strip("\'\"")
+                    if val.isdigit():
+                        args[3] = int(val)
+                    else:
+                        try:
+                            args[3] = float(val)
+                        except ValueError:
+                            args[3] = str(val)
+                else:
+                    args[3] = None
+            return args
+        return None
 
     def help_update(self):
         """ Help information for the update class """
