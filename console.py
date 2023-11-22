@@ -87,12 +87,6 @@ class HBNBCommand(cmd.Cmd):
         finally:
             return line
 
-    # def postcmd(self, stop, line):
-    #     """Prints if isatty is false"""
-    #     if not sys.__stdin__.isatty():
-    #         print('(hbnb) ', end='')
-    #     return stop
-    
     def postloop(self) -> None:
         if not sys.__stdin__.isatty():
             print()
@@ -133,17 +127,16 @@ class HBNBCommand(cmd.Cmd):
             instance_dict.update(kwargs)
             new_instance = HBNBCommand.classes[clsname](**instance_dict)
             objkey = f'{clsname}.{new_instance.id}'
-            storage.all()[objkey] =  new_instance
+            storage.all()[objkey] = new_instance
         storage.save()
         print(new_instance.id)
-
 
     def args_parser(self, args):
         '''parses args for the create method'''
         args = args.split(' ')
         clsname = args[0]
         params = args[1:]
-       
+
         argsdict = {}
         for item in params:
             if len(item.split('=')) != 2:
@@ -163,12 +156,10 @@ class HBNBCommand(cmd.Cmd):
             argsdict[key] = val
         return (clsname, argsdict)
 
-
     def do_test(self, line):
         new_instance = State()
         storage.save()
         print(new_instance.id)
-
 
     def help_create(self):
         """ Help information for the create method """
@@ -304,7 +295,7 @@ class HBNBCommand(cmd.Cmd):
         inst = HBNBCommand.classes[args[0]](**objdict)
         storage.new(inst)
         storage.save()
-    
+
     @staticmethod
     def validate(args):
         """validates args and returns the key"""
@@ -324,7 +315,7 @@ class HBNBCommand(cmd.Cmd):
             return None
 
         return key
-    
+
     @staticmethod
     def lineparser(line, num=-1):
         """Splits the line args and returns a list of them"""
