@@ -65,7 +65,6 @@ class FileStorage:
         if obj is None:
             return
         try:
-            print(f'cls: {obj.__class__.__name__}')
             objkey = f'{obj.__class__.__name__}.{obj.id}'
             del FileStorage.__objects[objkey]
         except KeyError:
