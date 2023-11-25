@@ -3,11 +3,12 @@
 from os import environ
 
 
-storeopt = environ.get('HBNB_TYPE_STORAGE')
-if storeopt == 'db':
+storagetype = environ.get('HBNB_TYPE_STORAGE')
+if storagetype == 'db':
     from models.engine.db_storage import DBStorage
     storage = DBStorage()
     storage.reload()
+    print('uiiiiiiiiii')
 else:
     from models.engine.file_storage import FileStorage
     storage = FileStorage()

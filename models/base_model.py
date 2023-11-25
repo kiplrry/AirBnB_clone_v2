@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, String, Integer, DateTime
 from datetime import datetime
-from models import storage
+
 
 Base = declarative_base()
 
@@ -42,6 +42,7 @@ class BaseModel:
         """Updates updated_at with current time when instance is changed"""
         from models import storage
         self.updated_at = datetime.now()
+        print('new frommmm')
         storage.new(self)
         storage.save()
 
@@ -54,9 +55,11 @@ class BaseModel:
         dictionary['created_at'] = self.created_at.isoformat()
         dictionary['updated_at'] = self.updated_at.isoformat()
         if '_sa_instance_state' in dictionary:
+            print('frf')
             dictionary.pop('_sa_instance_state')
         return dictionary
     
     def delete(self):
         ''' delete the current instance from the storage (models.storage) '''
+        from models import storage
         storage.delete(self)
