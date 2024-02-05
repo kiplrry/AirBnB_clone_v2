@@ -10,5 +10,8 @@ from datetime import datetime
 def do_pack():
     """gzips a file"""
     time = datetime.now()
+
     datestr = time.strftime("%Y%m%d%H%M%S")
-    local(f"tar -czvf web_static_{datestr}.tgz web_static/")
+    local("mkdir -p versions")
+    local(f"tar -cz -v --totals -f \
+          versions/web_static_{datestr}.tgz web_static/")
