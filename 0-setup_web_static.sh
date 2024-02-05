@@ -23,6 +23,6 @@ sudo chown -R ubuntu:ubuntu /data/
 
 # replace="\tserver_name localhost;\n\tlocation \/hbnb_static\/ {\n\t\talias \/data\/web_static\/current\/;\n\t}"
 
-sed -i '0,/server_name localhost;/s//server_name localhost;\n\tlocation \/hbnb_static\/ {\n\t\talias \/data\/web_static\/current\/;\n\t}/'  /etc/nginx/sites-enabled/default
+sed -i '0,/server_name ;/s//server_name _;\n\tlocation \/hbnb_static\/ {\n\t\talias \/data\/web_static\/current\/;\n\t}/'  /etc/nginx/sites-enabled/default
 
 sudo service nginx restart
