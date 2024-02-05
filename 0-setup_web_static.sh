@@ -21,7 +21,7 @@ sudo ln -sf /data/web_static/releases/test  /data/web_static/current
 
 sudo chown -R ubuntu:ubuntu /data/
 
-replace="\tserver_name localhost;\n\tlocation \/hbnb_static\/ {\n\t\talias \/data\/web_static\/current\/;\n\t}"
+# replace="\tserver_name localhost;\n\tlocation \/hbnb_static\/ {\n\t\talias \/data\/web_static\/current\/;\n\t}"
 
 sed -i '0,/server_name localhost;/s//server_name localhost;\n\tlocation \/hbnb_static\/ {\n\t\talias \/data\/web_static\/current\/;\n\t}/'  /etc/nginx/sites-enabled/default
 
