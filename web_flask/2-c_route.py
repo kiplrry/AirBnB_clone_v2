@@ -25,5 +25,13 @@ def c_is_fun(text):
     return f"C {text.replace('_', ' ')}"
 
 
+@app.route("/python/", defaults={'text': 'is cool'})
+@app.route("/python/<text>", strict_slashes=False)
+def python(text):
+    """display “Python ” followed by the value of the text
+    variable (replace underscore _ symbols with a space )"""
+    return f"Python {text.replace('_', ' ')}"
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
