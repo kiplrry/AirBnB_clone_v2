@@ -36,7 +36,7 @@ def python(text):
 @app.route("/number/<int:n>", strict_slashes=False)
 def number(n):
     """display “n is a number” only if n is an integer"""
-    return f"{n} is number"
+    return f"{n} is a number"
 
 
 if __name__ == "__main__":
